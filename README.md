@@ -1,3 +1,8 @@
+# (work in progress)
+
+* Reverted HTTP file transfer to Docker `COPY` to avoid WSL2 networking anomalies
+* Tested and working for WSL2/Ubuntu 18.04.5 LTS on Windows 10 Pro (Microsoft Windows [Version 10.0.19041.572])
+
 # Generic Petalinux Dockerfile
 
 A somehow generic Xilinx PetaLinux+SDK docker file, using Ubuntu (though some tweaks might be possible for Windows).
