@@ -1,0 +1,12 @@
+FROM ubuntu:16.04
+
+ARG XILVER=2017.4
+ARG SDK_INSTALLER=Xilinx-SDK-v${XILVER}.tgz
+ARG PETALINUX_BASE=petalinux-v${XILVER}-final
+ARG PETALINUX_INSTALLER=${PETALINUX_BASE}-installer.run
+
+WORKDIR /opt
+RUN mkdir t && cd t
+COPY resources/install_config_sdk.txt .
+COPY resources/${SDK_INSTALLER} .
+COPY resources/${PETALINUX_INSTALLER} .

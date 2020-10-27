@@ -1,7 +1,8 @@
 FROM ubuntu:16.04
 
 # The Xilinx toolchain version
-ARG XILVER=2019.1
+# ARG XILVER=2019.1
+ARG XILVER=2017.4
 
 # The SDK installer *GENERATED FROM THE WebInstall WITH OPTION "Extract to directory" (and zip)*
 # SDK will be installed in /opt/Xilinx/SDK/${XILVER}
@@ -17,7 +18,8 @@ ARG PETALINUX_BASE=petalinux-v${XILVER}-final
 ARG PETALINUX_INSTALLER=${PETALINUX_BASE}-installer.run
 
 # The HTTP server to retrieve the files from. It should be accessible by the Docker daemon as ${HTTP_SERV}/${SDK_INSTALLER}
-ARG HTTP_SERV=http://172.17.0.1:8000/resources
+# ARG HTTP_SERV=http://172.17.0.1:8000/resources
+# ARG HTTP_SERV=http://172.17.14.232:8000/resources
 
 RUN dpkg --add-architecture i386 && apt-get update && apt-get install -y \ 
 	python3.4 \
@@ -89,18 +91,27 @@ USER petalinux
 
 # Install SDK
 #COPY resources/install_config_sdk.txt .
-RUN mkdir t && cd t && wget -q ${HTTP_SERV}/install_config_sdk.txt \
-	&& wget -q -O - ${HTTP_SERV}/${SDK_INSTALLER} | tar -xz \
-	&& ./xsetup -b Install -a XilinxEULA,3rdPartyEULA,WebTalkTerms -c install_config_sdk.txt \
+RUN mkdir t && cd t
+#RUN wget -q ${HTTP_SERV}/install_config_sdk.txt
+COPY resources/install_config_sdk.txt .
+#RUN wget -q -O - ${HTTP_SERV}/${SDK_INSTALLER} | tar -xz 
+COPY resources/${SDK_INSTALLER} .
+RUN tar -xzf ${SDK_INSTALLER}
+RUN ./xsetup -b Install -a XilinxEULA,3rdPartyEULA,WebTalkTerms -c install_config_sdk.txt \
 	&& cd .. && rm -rf t \
 	&& echo "source /opt/Xilinx/SDK/${XILVER}/settings64.sh" >> ~/.bashrc \
 	&& echo "source /opt/${PETALINUX_BASE}/settings.sh" >> ~/.bashrc
 
 # Install PetaLinux
-RUN chown -R petalinux:petalinux . \
-	&& wget -q ${HTTP_SERV}/${PETALINUX_INSTALLER} \
-	&& chmod a+x ${PETALINUX_INSTALLER} \
-	&& SKIP_LICENSE=y ./${PETALINUX_FILE}${PETALINUX_INSTALLER} /opt/${PETALINUX_BASE} \
+USER root
+RUN chown -R petalinux:petalinux . 
+USER petalinux
+#RUN wget -q ${HTTP_SERV}/${PETALINUX_INSTALLER} 
+COPY resources/${PETALINUX_INSTALLER} .
+USER root
+RUN chmod a+x ${PETALINUX_INSTALLER}
+USER petalinux
+RUN SKIP_LICENSE=y ./${PETALINUX_FILE}${PETALINUX_INSTALLER} /opt/${PETALINUX_BASE} \
 	&& rm -f ./${PETALINUX_INSTALLER} \
 	&& rm -f petalinux_installation_log
 
